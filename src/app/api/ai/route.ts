@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { openai } from '@ai-sdk/openai'
-import { generateText, tool } from 'ai'
+import { streamText, tool } from 'ai'
 import { z } from 'zod'
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
 
-  const result = await generateText({
+  const { messages } = await request.json()
+
+  const result = streamText({
     model: openai('gpt-4o'),
     tools: {
       profileAndUrls: tool({
@@ -34,16 +36,17 @@ export async function GET(request: NextRequest) {
       })
 
     },
-    prompt: 'Me dê uma lista de usuários que o usuário alexandresl segue no github',
+    messages,
     maxSteps: 5,
+    system: `
+      Sempre responda em markdown, sem aspas no início ou fim da mensagem.
+    `,
     onStepFinish({ toolResults }) {
       console.log(toolResults);
 
     }
   })
 
-  return NextResponse.json({
-    message: result.text,
-  })
+  return result.toDataStreamResponse()
 
 }
