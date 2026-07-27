@@ -66,6 +66,20 @@ export function Chat() {
                       {message.content}
                     </Markdown>
                   </div>
+                  {message.parts.map(part => {
+                    if (part.type !== 'tool-invocation') {
+                      return null
+                    }
+
+                    if (part.toolInvocation.state === 'result') {
+                      return (
+                        <pre key={part.toolInvocation.toolCallId}>
+                          {JSON.stringify(part.toolInvocation.result, null, 2)}
+                        </pre>
+                      )
+                    }
+
+                  })}
                 </div>
               </div>
             )
